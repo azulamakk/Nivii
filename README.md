@@ -18,7 +18,7 @@ Then open **http://localhost:8000** in your browser.
 
 > **First run:** The app downloads two Ollama models on startup (~3 GB total). This only happens once; subsequent runs reuse the cached `ollama_data` Docker volume. Startup can take 5–10 minutes depending on your connection.
 
-> **Memory:** The default model (`qwen2.5-coder:1.5b`) requires ~1.5 GB RAM. If you have Docker Desktop, make sure it has at least **4 GB of memory** allocated (Settings → Resources → Memory). To use the higher-accuracy 7B model (requires ~5 GB RAM), set `SQL_MODEL=qwen2.5-coder:7b`:
+> **Memory:** The default model (`qwen2.5:1.5b`) requires ~1.2 GB RAM and runs on any modern laptop. If you have Docker Desktop, make sure it has at least **4 GB of memory** allocated (Settings → Resources → Memory). To use a higher-accuracy 7B model (requires ~5 GB RAM), set `SQL_MODEL=qwen2.5-coder:7b`:
 
 ```bash
 SQL_MODEL=qwen2.5-coder:7b docker compose up --build
@@ -44,9 +44,10 @@ SQL_MODEL=qwen2.5-coder:7b docker compose up --build
 │                                                 │
 │  ┌────────────────────┐   ┌───────────────────┐ │
 │  │   app (monolith)   │   │      ollama       │ │
-│  │   FastAPI · Python │──▶│  Model server       │ │
-│  │                    │   │  qwen2.5-coder:1.5b │ │
-│  │  • Loads data.csv  │   │  llama3.2:3b        │ │
+│  │   FastAPI · Python │──▶│  Model server     │ │
+│  │                    │   │  qwen2.5:1.5b     │ │
+│  │  • Loads data.csv  │   │  (text-to-SQL +   │ │
+│  │  • SQLite (embed.) │   │   NL answer)      │ │
 │  │  • SQLite (embed.) │   └───────────────────┘ │
 │  │  • Serves web UI   │                         │
 │  │  • /api/query      │                         │
@@ -57,10 +58,10 @@ SQL_MODEL=qwen2.5-coder:7b docker compose up --build
 **Request flow:**
 
 1. User submits a question via the web UI.
-2. `app` sends the question + table schema to Ollama (`qwen2.5-coder:1.5b` by default) → receives SQL.
+2. `app` sends the question + table schema to Ollama (`qwen2.5:1.5b`) → receives SQL.
 3. SQL is validated and executed against embedded SQLite.
 4. If execution fails, the error is fed back to the model for up to 3 retry attempts.
-5. The SQL result is sent to Ollama (`llama3.2:3b`) → receives a natural-language answer.
+5. The SQL result is sent back to Ollama → receives a natural-language answer.
 6. The UI displays the answer, the generated SQL, and the results table.
 
 **Dataset:** `data.csv` (~24k rows) — POS transaction records with columns:
@@ -68,24 +69,44 @@ SQL_MODEL=qwen2.5-coder:7b docker compose up --build
 
 ---
 
-## Model Choices & Trade-offs
+## Model Evaluation
 
-| Role | Model | Size | RAM needed | Why |
+Eight open-source models were benchmarked against a 5-query test suite using three core KPIs: SQL validity rate, answer correctness, and average latency. The evaluation targets a MacBook Air with 8 GB RAM — no GPU required.
+
+| Model | SQL valid | Correct | Latency | RAM |
 |---|---|---|---|---|
-| Text-to-SQL (default) | `qwen2.5-coder:1.5b` | ~1 GB | ~1.5 GB | Works on any machine; purpose-built for code generation |
-| Text-to-SQL (high accuracy) | `qwen2.5-coder:7b` | ~4.7 GB | ~5 GB | Better SQL for complex queries; set `SQL_MODEL=qwen2.5-coder:7b` |
-| NL answer (default) | `qwen2.5-coder:1.5b` | shared | ~0 extra | Reuses the SQL model already in memory — zero extra RAM cost |
-| NL answer (dedicated) | `llama3.2:3b` | ~2 GB | ~2 GB | Set `NL_MODEL=llama3.2:3b` on machines with ≥6 GB Docker memory |
+| **`qwen2.5:1.5b`** ← default | **100%** | **100%** | **2.5 s** | ~1.2 GB |
+| `qwen2.5-coder:1.5b` | 100% | 80% | 2.4 s | ~1.2 GB |
+| `llama3.2:1b` | 100% | 60% | 1.9 s | ~1.5 GB |
+| `qwen2.5-coder:0.5b` | 100% | 60% | 0.9 s | ~0.5 GB |
+| `deepseek-coder:1.3b` | 60% | 60% | 3.8 s | ~1.0 GB |
+| `gemma2:2b`, `llama3.2:3b`, `qwen2.5-coder:7b` | OOM† | — | — | 2.5–5 GB |
 
-**Why `qwen2.5-coder:1.5b` as default?** The assignment requires the system to "run reliably outside your local environment." A 7B model fails on machines with Docker Desktop's default memory allocation (~2-4 GB). The 1.5B model runs comfortably on any modern laptop. Quality is mitigated by:
-- Full schema injected into every system prompt.
-- Three curated few-shot examples anchor the output format.
-- Retry loop (up to 3 attempts) feeds the SQLite error back to the model for self-correction.
-- SQL output is stripped of markdown fences before execution.
+> † OOM in the constrained test environment (Docker 2.4 GB). `gemma2:2b` and `llama3.2:3b` should run on a standard 8 GB machine; `qwen2.5-coder:7b` requires ≥ 16 GB RAM.
 
-**Why not SQLCoder-7b-2?** Defog's SQLCoder requires 14 GB of RAM and is extremely slow on CPU — not practical for a take-home demo.
+**Notable finding:** `qwen2.5:1.5b` (general instruct) outperformed `qwen2.5-coder:1.5b` (code-specialized) — 100% vs 80% correctness. The code fine-tuning appears to reduce flexibility on natural-language grouping queries. The base instruct model was therefore chosen as the default.
 
-**Why Ollama instead of in-process HuggingFace?** Ollama handles model loading, GGUF quantization, GPU detection, and a clean REST API out of the box — far less Docker complexity than bundling transformers + CUDA drivers inside the app image.
+For the full methodology, KPI definitions, per-query results, trade-off analysis, and the list of models considered but not evaluated (API-only, HuggingFace-only, and hardware-constrained), see **[decisions.md](decisions.md)** — written in Spanish as required.
+
+The benchmark is reproducible:
+
+```bash
+python3 eval/benchmark.py          # all models
+python3 eval/benchmark.py qwen2.5:1.5b   # single model
+```
+
+---
+
+## Model Configuration
+
+| Role | Default | Alternative | How to switch |
+|---|---|---|---|
+| Text-to-SQL | `qwen2.5:1.5b` | `qwen2.5-coder:7b` | `SQL_MODEL=qwen2.5-coder:7b docker compose up` |
+| NL answer | `qwen2.5:1.5b` | `llama3.2:3b` | `NL_MODEL=llama3.2:3b docker compose up` |
+
+Both roles share the same model by default, keeping memory usage at ~1.2 GB total.
+
+**Why Ollama instead of in-process HuggingFace?** Ollama handles GGUF quantization, GPU detection, and REST API serving out of the box — no CUDA drivers or `torch` inside the app image.
 
 ---
 
@@ -94,8 +115,8 @@ SQL_MODEL=qwen2.5-coder:7b docker compose up --build
 | Variable | Default | Description |
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://ollama:11434` | Ollama server URL |
-| `SQL_MODEL` | `qwen2.5-coder:1.5b` | Model used for text-to-SQL |
-| `NL_MODEL` | `qwen2.5-coder:1.5b` | Model used for natural-language answers |
+| `SQL_MODEL` | `qwen2.5:1.5b` | Model used for text-to-SQL |
+| `NL_MODEL` | `qwen2.5:1.5b` | Model used for natural-language answers |
 | `DB_PATH` | `/app/data/sales.db` | SQLite database file path |
 | `CSV_PATH` | `/app/data/data.csv` | Source CSV file path |
 | `MAX_RETRIES` | `3` | Max SQL generation retries on error |

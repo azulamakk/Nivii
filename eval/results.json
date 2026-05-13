@@ -1,0 +1,304 @@
+[
+  {
+    "model": "qwen2.5-coder:0.5b",
+    "status": "ok",
+    "sql_validity_rate": 100.0,
+    "correctness_rate": 60.0,
+    "avg_latency_s": 0.9,
+    "avg_retries": 0.0,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 2.45,
+        "sql": "SELECT count(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 0.58,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY total_qty DESC LIMIT 1;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 0.71,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty \nFROM sales \nWHERE week_day = 'Friday' \nGROUP BY product_name \nORDER BY total_qty DESC \nLIMIT 3;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 0.4,
+        "sql": "SELECT AVG(total) FROM sales WHERE week_day = 'Sunday';"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 0.34,
+        "sql": "SELECT count(DISTINCT product_name) FROM sales;"
+      }
+    ]
+  },
+  {
+    "model": "qwen2.5-coder:1.5b",
+    "status": "ok",
+    "sql_validity_rate": 100.0,
+    "correctness_rate": 80.0,
+    "avg_latency_s": 2.35,
+    "avg_retries": 0.0,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 7.15,
+        "sql": "SELECT count(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.5,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY total_qty DESC LIMIT 1;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.19,
+        "sql": "SELECT waiter, SUM(total) AS revenue FROM sales GROUP BY waiter ORDER BY revenue DESC LIMIT 3;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 1.12,
+        "sql": "SELECT DATE(date), AVG(total) AS avg_total FROM sales GROUP BY DATE(date);"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 0.77,
+        "sql": "SELECT COUNT(DISTINCT waiter) FROM sales;"
+      }
+    ]
+  },
+  {
+    "model": "qwen2.5:1.5b",
+    "status": "ok",
+    "sql_validity_rate": 100.0,
+    "correctness_rate": 100.0,
+    "avg_latency_s": 2.54,
+    "avg_retries": 0.0,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 7.39,
+        "sql": "SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.92,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty \nFROM sales \nWHERE week_day = 'Friday' \nGROUP BY product_name \nORDER BY total_qty DESC \nLIMIT 1;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.51,
+        "sql": "SELECT waiter, SUM(total) AS total_income \nFROM sales \nGROUP BY waiter \nORDER BY total_income DESC \nLIMIT 3;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.01,
+        "sql": "SELECT AVG(total), week_day FROM sales GROUP BY week_day;"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 0.87,
+        "sql": "SELECT COUNT(DISTINCT waiter) FROM sales;"
+      }
+    ]
+  },
+  {
+    "model": "llama3.2:1b",
+    "status": "ok",
+    "sql_validity_rate": 100.0,
+    "correctness_rate": 60.0,
+    "avg_latency_s": 1.85,
+    "avg_retries": 0.0,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.87,
+        "sql": "SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.14,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY total_qty DESC LIMIT 1;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 0.86,
+        "sql": "SELECT waiter, SUM(total) AS revenue FROM sales GROUP BY waiter ORDER BY revenue DESC LIMIT 3;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 1.58,
+        "sql": "SELECT AVG(total) FROM sales WHERE week_day = 'Lunes' OR week_day = 'martes' OR week_day = 'miércoles' OR week_day = 'jueves' OR week_day = 'viernes';"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 0.8,
+        "sql": "SELECT COUNT(ticket_number) FROM sales WHERE waiter = 'Más de un';"
+      }
+    ]
+  },
+  {
+    "model": "deepseek-coder:1.3b",
+    "status": "ok",
+    "sql_validity_rate": 60.0,
+    "correctness_rate": 60.0,
+    "avg_latency_s": 3.75,
+    "avg_retries": 1.2,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "sql_valid": false,
+        "correct": false,
+        "retries": 3,
+        "latency_s": 6.55,
+        "sql": "La sentencia correcta para obtener el número total de registros es: SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.76,
+        "sql": "SELECT product_name, SUM(quantity) as total_qty from sales WHERE week_day = 'Thursday' GROUP BY product_name ORDER BY total_qty DESC LIMIT 1;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "medium",
+        "sql_valid": false,
+        "correct": false,
+        "retries": 3,
+        "latency_s": 4.57,
+        "sql": "Aquí está la solución para tu pregunta, que es obtener los 3 mozos con el mejor ingreso en ventas de sus productos. Por cada fila del archivo sales (tabla), tenemos un valor asignado a una variable y luego se ordenan por ese valor descendentemente según su número total de la columna 'total'. El resultado final es limitar al 3 mozo que obtuvo el ingreso máximo.;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "medium",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.77,
+        "sql": "SELECT week_day, AVG(unitary_price * quantity) AS average_sales FROM sales GROUP BY week_day ORDER BY average_sales DESC LIMIT 7;"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "simple",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.11,
+        "sql": "SELECT COUNT (DISTINCT `waiter` )FROM `sales`;"
+      }
+    ]
+  },
+  {
+    "model": "gemma2:2b",
+    "status": "unavailable",
+    "sql_validity_rate": null,
+    "correctness_rate": null,
+    "avg_latency_s": null,
+    "avg_retries": null,
+    "results": []
+  },
+  {
+    "model": "llama3.2:3b",
+    "status": "unavailable",
+    "sql_validity_rate": null,
+    "correctness_rate": null,
+    "avg_latency_s": null,
+    "avg_retries": null,
+    "results": []
+  },
+  {
+    "model": "qwen2.5-coder:7b",
+    "status": "unavailable",
+    "sql_validity_rate": null,
+    "correctness_rate": null,
+    "avg_latency_s": null,
+    "avg_retries": null,
+    "results": []
+  }
+]

@@ -21,12 +21,10 @@ services:
         condition: service_healthy
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
-      # Default: 1.5b fits on any machine (requires ~1.5 GB RAM).
-      # For higher SQL accuracy, set SQL_MODEL=qwen2.5-coder:7b (requires ~5 GB RAM / 8 GB Docker memory).
-      - SQL_MODEL=qwen2.5-coder:1.5b
-      # Reuses the same model to minimise memory footprint.
-      # On machines with more RAM, set NL_MODEL=llama3.2:3b for a general-purpose responder.
-      - NL_MODEL=qwen2.5-coder:1.5b
+      # Default: qwen2.5:1.5b — top performer in benchmark (100% correctness, ~1 GB RAM).
+      # See decisions.md for full evaluation. For higher accuracy: SQL_MODEL=qwen2.5-coder:7b (needs ~5 GB RAM).
+      - SQL_MODEL=qwen2.5:1.5b
+      - NL_MODEL=qwen2.5:1.5b
       - DB_PATH=/app/data/sales.db
       - CSV_PATH=/app/data/data.csv
       - MAX_RETRIES=3
