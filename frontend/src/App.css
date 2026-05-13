@@ -1,0 +1,272 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  min-height: 100vh;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px 80px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.header p {
+  margin-top: 6px;
+  color: #6e6e73;
+  font-size: 0.95rem;
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 760px;
+}
+
+/* ── Input row ── */
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.textarea {
+  flex: 1;
+  resize: vertical;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1.5px solid #d2d2d7;
+  border-radius: 10px;
+  font-size: 0.97rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.textarea:focus {
+  border-color: #0071e3;
+}
+.textarea:disabled {
+  opacity: 0.6;
+}
+
+.btn-primary {
+  padding: 12px 22px;
+  background: #0071e3;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, opacity 0.15s;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #0077ed;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Example chips ── */
+.chips {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background: #f0f0f5;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: #3a3a3c;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.chip:hover:not(:disabled) {
+  background: #e0e0e8;
+}
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Status / spinner ── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d2d2d7;
+  border-top-color: #0071e3;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-text {
+  font-size: 0.88rem;
+  color: #6e6e73;
+}
+
+/* ── Error box ── */
+.error-box {
+  margin-top: 20px;
+  background: #fff2f2;
+  border-left: 4px solid #ff3b30;
+  border-radius: 0 10px 10px 0;
+  padding: 14px 18px;
+  font-size: 0.93rem;
+  color: #c0392b;
+}
+
+/* ── Results section ── */
+.result {
+  margin-top: 28px;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6e6e73;
+  margin-top: 22px;
+  margin-bottom: 6px;
+}
+
+/* Answer */
+.answer-box {
+  background: #f0f7ff;
+  border-left: 4px solid #0071e3;
+  border-radius: 0 10px 10px 0;
+  padding: 16px 20px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* SQL collapsible */
+.sql-details {
+  border: 1.5px solid #d2d2d7;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.sql-details summary {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #3a3a3c;
+  background: #fafafa;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sql-details summary::marker,
+.sql-details summary::-webkit-details-marker {
+  display: none;
+}
+.sql-details summary::before {
+  content: "▶";
+  font-size: 0.65rem;
+  transition: transform 0.15s;
+}
+.sql-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.sql-pre {
+  padding: 14px 16px;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1.5px solid #d2d2d7;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+
+th {
+  background: #f5f5f7;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #3a3a3c;
+  border-bottom: 1.5px solid #d2d2d7;
+  white-space: nowrap;
+}
+
+td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.row-count {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: #6e6e73;
+  text-align: right;
+}
+
+.no-results {
+  color: #6e6e73;
+  font-size: 0.9rem;
+}
