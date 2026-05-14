@@ -1,7 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.config import settings
@@ -72,6 +71,3 @@ async def query(req: QueryRequest):
         "row_count": len(rows),
     }
 
-
-# Serve the React build — must come after all /api/* routes
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="static")
