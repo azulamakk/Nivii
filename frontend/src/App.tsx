@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent } from "react";
-import { runQuery, QueryResponse } from "./api";
+import { runQuery, QueryResponse, HistoryEntry } from "./api";
 
 const EXAMPLES = [
   "What is the most bought product on Fridays?",
@@ -16,23 +16,55 @@ export default function App() {
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [lastQuestion, setLastQuestion] = useState<string>("");
+  const [followUpQuestion, setFollowUpQuestion] = useState<string>("");
 
-  async function handleSubmit() {
-    const q = question.trim();
+  async function submit(q: string) {
     if (!q || status === "loading") return;
 
+    // Push current result into history before fetching next
+    const newHistory =
+      result && lastQuestion
+        ? [...history, { question: lastQuestion, sql: result.sql, answer: result.answer }]
+        : history;
+
+    setHistory(newHistory);
     setStatus("loading");
     setResult(null);
     setError(null);
+    setLastQuestion(q);
 
     try {
-      const data = await runQuery(q);
+      const data = await runQuery(q, newHistory.slice(-5));
       setResult(data);
       setStatus("success");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error.");
       setStatus("error");
     }
+  }
+
+  function handleSubmit() {
+    submit(question.trim());
+  }
+
+  function handleFollowUpSubmit() {
+    const q = followUpQuestion.trim();
+    if (q) {
+      setFollowUpQuestion("");
+      submit(q);
+    }
+  }
+
+  function handleNewConversation() {
+    setHistory([]);
+    setResult(null);
+    setError(null);
+    setStatus("idle");
+    setQuestion("");
+    setLastQuestion("");
+    setFollowUpQuestion("");
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -42,6 +74,8 @@ export default function App() {
     }
   }
 
+  const hasActivity = history.length > 0 || result !== null;
+
   return (
     <div className="page">
       <header className="header">
@@ -50,6 +84,34 @@ export default function App() {
       </header>
 
       <main className="card">
+        {hasActivity && (
+          <div className="chat-header">
+            <p className="section-label" style={{ marginTop: 0, marginBottom: 0 }}>
+              Conversation
+            </p>
+            <button className="btn-new-conversation" onClick={handleNewConversation}>
+              New conversation
+            </button>
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="chat-thread">
+            {history.map((entry, i) => (
+              <div key={i} className="chat-exchange">
+                <p className="chat-question">{entry.question}</p>
+                {entry.answer && <p className="chat-answer">{entry.answer}</p>}
+                <details className="sql-details">
+                  <summary>View query</summary>
+                  <pre className="sql-pre">{entry.sql}</pre>
+                </details>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {hasActivity && <hr className="chat-divider" />}
+
         <div className="input-row">
           <textarea
             className="textarea"
@@ -69,18 +131,20 @@ export default function App() {
           </button>
         </div>
 
-        <div className="chips">
-          {EXAMPLES.map((ex) => (
-            <button
-              key={ex}
-              className="chip"
-              onClick={() => setQuestion(ex)}
-              disabled={status === "loading"}
-            >
-              {ex}
-            </button>
-          ))}
-        </div>
+        {!hasActivity && (
+          <div className="chips">
+            {EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                className="chip"
+                onClick={() => setQuestion(ex)}
+                disabled={status === "loading"}
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        )}
 
         {status === "loading" && (
           <div className="status-row">
@@ -138,6 +202,31 @@ export default function App() {
             ) : (
               <p className="no-results">No rows returned.</p>
             )}
+          </div>
+        )}
+
+        {status === "success" && result && (
+          <div className="followup-row">
+            <textarea
+              className="textarea"
+              value={followUpQuestion}
+              onChange={(e) => setFollowUpQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleFollowUpSubmit();
+                }
+              }}
+              placeholder="Ask a follow-up question…"
+              rows={2}
+            />
+            <button
+              className="btn-primary"
+              onClick={handleFollowUpSubmit}
+              disabled={!followUpQuestion.trim()}
+            >
+              Ask
+            </button>
           </div>
         )}
       </main>

@@ -6,11 +6,20 @@ export interface QueryResponse {
   row_count: number;
 }
 
-export async function runQuery(question: string): Promise<QueryResponse> {
+export interface HistoryEntry {
+  question: string;
+  sql: string;
+  answer: string;
+}
+
+export async function runQuery(
+  question: string,
+  history: HistoryEntry[] = []
+): Promise<QueryResponse> {
   const res = await fetch("/api/query", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, history }),
   });
 
   const data = await res.json();

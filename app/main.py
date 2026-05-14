@@ -29,8 +29,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Nivii SQL Query App", lifespan=lifespan)
 
 
+class HistoryEntry(BaseModel):
+    question: str
+    sql: str
+    answer: str
+
+
 class QueryRequest(BaseModel):
     question: str
+    history: list[HistoryEntry] = []
 
 
 @app.get("/api/health")
@@ -54,7 +61,7 @@ async def query(req: QueryRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     try:
-        sql, columns, rows = text_to_sql(req.question)
+        sql, columns, rows = text_to_sql(req.question, history=req.history)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:

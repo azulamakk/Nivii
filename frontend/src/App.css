@@ -270,3 +270,75 @@ tr:nth-child(even) td {
   color: #6e6e73;
   font-size: 0.9rem;
 }
+
+/* ── Chat thread ── */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-new-conversation {
+  background: none;
+  border: 1.5px solid #d2d2d7;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #3a3a3c;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn-new-conversation:hover {
+  background: #f0f0f5;
+  border-color: #b0b0b5;
+}
+
+.chat-thread {
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.chat-exchange {
+  background: #f9f9fb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e8e8ed;
+}
+
+.chat-question {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e8e8ed;
+}
+
+.chat-answer {
+  font-size: 0.9rem;
+  color: #3a3a3c;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.chat-divider {
+  border: none;
+  border-top: 1.5px solid #e8e8ed;
+  margin: 20px 0;
+}
+
+/* ── Follow-up input ── */
+.followup-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1.5px solid #e8e8ed;
+}

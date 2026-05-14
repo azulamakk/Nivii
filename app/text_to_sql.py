@@ -31,6 +31,16 @@ Examples:
 
   Q: Which waiter made the most sales?
   A: SELECT waiter, SUM(total) AS revenue FROM sales GROUP BY waiter ORDER BY revenue DESC LIMIT 1;
+
+Follow-up rules (when conversation history is provided):
+- Always build upon the SQL from the previous exchange rather than starting from scratch.
+- References like "the 6th", "what about Saturdays", "and the second one?" refer to the same aggregation or filter as the prior query.
+- NEVER use OFFSET on raw rows to answer a ranking question; instead adjust LIMIT/OFFSET on the same GROUP BY query.
+
+Follow-up example:
+  Previous SQL: SELECT product_name, SUM(quantity) AS total_qty FROM sales GROUP BY product_name ORDER BY total_qty DESC LIMIT 5;
+  Follow-up Q: Which is the 6th?
+  A: SELECT product_name, SUM(quantity) AS total_qty FROM sales GROUP BY product_name ORDER BY total_qty DESC LIMIT 1 OFFSET 5;
 """
 
 
@@ -44,17 +54,31 @@ def _clean_sql(raw: str) -> str:
     return raw
 
 
-def text_to_sql(question: str) -> tuple[str, list[str], list[list]]:
+def text_to_sql(question: str, history: list | None = None) -> tuple[str, list[str], list[list]]:
     schema = database.get_schema()
     system = _SYSTEM_TEMPLATE.format(schema=schema)
 
-    prompt = question
+    context = ""
+    if history:
+        lines = ["=== Previous exchanges (for context only) ==="]
+        for h in history[-5:]:
+            lines += [
+                f"User: {h.question}",
+                f"SQL generated: {h.sql}",
+                f"Result summary: {h.answer}",
+                "",
+            ]
+        lines += ["=== New question (output SQL only) ===", ""]
+        context = "\n".join(lines)
+
+    base_prompt = context + question
+    prompt = base_prompt
     last_error: str = ""
 
     for attempt in range(1, settings.max_retries + 1):
         if last_error:
             prompt = (
-                f"{question}\n\n"
+                f"{base_prompt}\n\n"
                 f"Previous attempt produced this SQL:\n{last_sql}\n"
                 f"Which failed with error: {last_error}\n"
                 f"Please fix the SQL and return only the corrected query."
