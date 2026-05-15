@@ -10,7 +10,7 @@ A natural-language interface for querying a POS sales database. Type a question 
 
 ```bash
 git clone <repo-url>
-cd nivii-sql-app
+cd Nivii
 docker compose up --build
 ```
 
@@ -60,7 +60,7 @@ Then open **http://localhost** in your browser.
 **Request flow:**
 
 1. User submits a question via the web UI.
-2. `app` sends the question + table schema to Ollama (`qwen2.5-coder:1.5b` by default) → receives SQL.
+2. `app` sends the question + table schema to Ollama (`gemma3:4b` by default) → receives SQL.
 3. SQL is validated and executed against embedded SQLite.
 4. If execution fails, the error is fed back to the model for up to 3 retry attempts.
 5. The SQL result is sent back to Ollama → receives a natural-language answer.
@@ -124,8 +124,8 @@ python3 eval/benchmark.py qwen2.5:1.5b   # single model
 | Variable | Default | Description |
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://ollama:11434` | Ollama server URL |
-| `SQL_MODEL` | `qwen2.5:1.5b` | Model used for text-to-SQL |
-| `NL_MODEL` | `qwen2.5:1.5b` | Model used for natural-language answers |
+| `SQL_MODEL` | `gemma3:4b` | Model used for text-to-SQL |
+| `NL_MODEL` | `qwen2.5-coder:1.5b` | Model used for natural-language answers |
 | `DB_PATH` | `/app/data/sales.db` | SQLite database file path |
 | `CSV_PATH` | `/app/data/data.csv` | Source CSV file path |
 | `MAX_RETRIES` | `3` | Max SQL generation retries on error |
