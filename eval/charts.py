@@ -19,8 +19,10 @@ OUT_DIR.mkdir(exist_ok=True)
 
 # Memory tier per model — matches decisions.md §7
 TIER_5GB = {"gemma3:4b", "qwen3.5:2b", "llama3.2:3b", "gemma2:2b"}
+TIER_8GB = {"qwen2.5-coder:7b", "qwen3.5:4b", "gemma4:e2b"}
 COLOR_4GB = "#27ae60"
 COLOR_5GB = "#e67e22"
+COLOR_8GB = "#8e44ad"
 
 sns.set_theme(style="whitegrid", font_scale=1.1)
 
@@ -31,11 +33,20 @@ def load_results():
 
 
 def tier_color(model: str) -> str:
-    return COLOR_5GB if model in TIER_5GB else COLOR_4GB
+    if model in TIER_8GB:
+        return COLOR_8GB
+    if model in TIER_5GB:
+        return COLOR_5GB
+    return COLOR_4GB
 
 
 def short_name(model: str) -> str:
-    return model.replace("qwen2.5-coder", "qwen2.5c").replace("qwen2.5", "qwen2.5").replace("deepseek-coder", "deepseek-c")
+    return (
+        model
+        .replace("qwen2.5-coder", "qwen2.5c")
+        .replace("deepseek-coder", "deepseek-c")
+        .replace("gemma4:e2b", "gemma4-e2b")
+    )
 
 
 # ── Chart 1: Correctness vs Latency trade-off ─────────────────────────────────
@@ -74,6 +85,7 @@ def chart_correctness_vs_latency(data):
     legend_handles = [
         mpatches.Patch(color=COLOR_4GB, label="≤ 4 GB Docker (standard)"),
         mpatches.Patch(color=COLOR_5GB, label="5 GB Docker (ampliado)"),
+        mpatches.Patch(color=COLOR_8GB, label="8 GB Docker (avanzado)"),
         plt.Line2D([0], [0], color="grey", linestyle="--", label="60% threshold"),
     ]
     ax.legend(handles=legend_handles, fontsize=9, loc="upper left")

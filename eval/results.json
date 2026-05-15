@@ -3218,5 +3218,660 @@
         "sql": ""
       }
     ]
+  },
+  {
+    "model": "qwen2.5-coder:7b",
+    "status": "ok",
+    "sql_validity_rate": 96.8,
+    "correctness_rate": 80.6,
+    "es_correctness_rate": 85.7,
+    "en_correctness_rate": 70.0,
+    "avg_latency_s": 10.5,
+    "avg_retries": 0.16,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 26.4,
+        "sql": "SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q1b",
+        "difficulty": "simple",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 3.52,
+        "sql": "SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 2.95,
+        "sql": "SELECT COUNT(DISTINCT waiter) FROM sales;"
+      },
+      {
+        "id": "Q2b",
+        "difficulty": "simple",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 2.26,
+        "sql": "SELECT COUNT(DISTINCT waiter) FROM sales;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 3.44,
+        "sql": "SELECT COUNT(DISTINCT product_name) FROM sales;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 2.68,
+        "sql": "SELECT COUNT(DISTINCT ticket_number) FROM sales;"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 5.67,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY total_qty DESC LIMIT 1;"
+      },
+      {
+        "id": "Q5b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 6.82,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY total_qty DESC LIMIT 1;"
+      },
+      {
+        "id": "Q6",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 5.55,
+        "sql": "SELECT waiter, SUM(total) AS revenue FROM sales GROUP BY waiter ORDER BY revenue DESC LIMIT 3;"
+      },
+      {
+        "id": "Q6b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.41,
+        "sql": "SELECT waiter, SUM(total) AS revenue FROM sales GROUP BY waiter ORDER BY revenue DESC LIMIT 3;"
+      },
+      {
+        "id": "Q7",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 3.9,
+        "sql": "SELECT week_day, AVG(total) AS average_total FROM sales GROUP BY week_day;"
+      },
+      {
+        "id": "Q7b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 2.64,
+        "sql": "SELECT AVG(total), week_day FROM sales GROUP BY week_day;"
+      },
+      {
+        "id": "Q8",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.69,
+        "sql": "SELECT product_name, SUM(quantity) AS total_quantity FROM sales GROUP BY product_name ORDER BY total_quantity DESC LIMIT 1;"
+      },
+      {
+        "id": "Q9",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.27,
+        "sql": "SELECT hour, COUNT(*) as num_sales FROM sales GROUP BY hour ORDER BY num_sales DESC LIMIT 1;"
+      },
+      {
+        "id": "Q10",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.8,
+        "sql": "SELECT week_day, SUM(total) AS total_revenue FROM sales GROUP BY week_day ORDER BY total_revenue DESC LIMIT 1;"
+      },
+      {
+        "id": "Q11",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.47,
+        "sql": "SELECT product_name, SUM(total) AS total_revenue FROM sales GROUP BY product_name ORDER BY total_revenue DESC LIMIT 5;"
+      },
+      {
+        "id": "Q11b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.64,
+        "sql": "SELECT product_name, SUM(total) AS total_revenue FROM sales GROUP BY product_name ORDER BY total_revenue DESC LIMIT 5;"
+      },
+      {
+        "id": "Q12",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 2.87,
+        "sql": "SELECT SUM(total) as total_revenue FROM sales;"
+      },
+      {
+        "id": "Q13",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 6.45,
+        "sql": "SELECT waiter, COUNT(DISTINCT ticket_number) AS distinct_tickets FROM sales GROUP BY waiter ORDER BY distinct_tickets DESC LIMIT 1;"
+      },
+      {
+        "id": "Q14",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 7.33,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day IN ('Saturday', 'Sunday') GROUP BY product_name ORDER BY total_qty DESC LIMIT 3;"
+      },
+      {
+        "id": "Q14b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 5.49,
+        "sql": "SELECT product_name, SUM(quantity) AS total_qty FROM sales WHERE week_day IN ('Saturday', 'Sunday') GROUP BY product_name ORDER BY total_qty DESC LIMIT 3;"
+      },
+      {
+        "id": "Q15",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 1,
+        "latency_s": 5.07,
+        "sql": "SELECT product_name FROM sales GROUP BY product_name HAVING SUM(quantity) > ( SELECT AVG(total) FROM sales );"
+      },
+      {
+        "id": "Q16",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.22,
+        "sql": "SELECT waiter, COUNT(DISTINCT product_name) AS distinct_products_sold FROM sales GROUP BY waiter;"
+      },
+      {
+        "id": "Q17",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 8.41,
+        "sql": "SELECT waiter, AVG(total) AS average_revenue FROM sales GROUP BY waiter ORDER BY average_revenue DESC LIMIT 1;"
+      },
+      {
+        "id": "Q17b",
+        "difficulty": "hard",
+        "language": "en",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 17.91,
+        "sql": "SELECT waiter, AVG(total) AS avg_revenue FROM sales GROUP BY waiter ORDER BY avg_revenue DESC LIMIT 1;"
+      },
+      {
+        "id": "Q18",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 30.13,
+        "sql": "SELECT SUBSTR(date, 4, 2) AS month, SUM(total) AS total_revenue FROM sales GROUP BY month ORDER BY total_revenue DESC LIMIT 1;"
+      },
+      {
+        "id": "Q18b",
+        "difficulty": "hard",
+        "language": "en",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 18.54,
+        "sql": "SELECT date, SUM(total) AS revenue FROM sales GROUP BY date LIKE '%/%/2024' ORDER BY revenue DESC LIMIT 1;"
+      },
+      {
+        "id": "Q19",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 45.88,
+        "sql": "SELECT waiter, SUM(total) AS total_revenue FROM sales WHERE date LIKE '10/%/2024' GROUP BY waiter;"
+      },
+      {
+        "id": "Q20",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 1,
+        "latency_s": 22.71,
+        "sql": "SELECT ( SELECT SUM(total) FROM sales GROUP BY waiter ORDER BY SUM(total) DESC LIMIT 1 ) - ( SELECT SUM(total) FROM sales GROUP BY waiter ORDER BY SUM(total) ASC LIMIT 1 ) AS revenue_difference;"
+      },
+      {
+        "id": "Q20b",
+        "difficulty": "hard",
+        "language": "en",
+        "sql_valid": false,
+        "correct": false,
+        "retries": 3,
+        "latency_s": 28.65,
+        "sql": "SELECT (MAX(SUM(total)) - MIN(SUM(total))) AS revenue_difference FROM sales GROUP BY waiter;"
+      },
+      {
+        "id": "Q21",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 28.88,
+        "sql": "SELECT AVG(unitary_price), waiter FROM sales GROUP BY waiter ORDER BY AVG(unitary_price) DESC;"
+      }
+    ]
+  },
+  {
+    "model": "qwen3.5:4b",
+    "status": "unavailable",
+    "sql_validity_rate": null,
+    "correctness_rate": null,
+    "es_correctness_rate": null,
+    "en_correctness_rate": null,
+    "avg_latency_s": null,
+    "avg_retries": null,
+    "results": []
+  },
+  {
+    "model": "gemma4:e2b",
+    "status": "ok",
+    "sql_validity_rate": 100.0,
+    "correctness_rate": 71.0,
+    "es_correctness_rate": 66.7,
+    "en_correctness_rate": 80.0,
+    "avg_latency_s": 15.06,
+    "avg_retries": 0.0,
+    "results": [
+      {
+        "id": "Q1",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 15.33,
+        "sql": "SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q1b",
+        "difficulty": "simple",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 0.96,
+        "sql": "SELECT COUNT(*) FROM sales;"
+      },
+      {
+        "id": "Q2",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 9.74,
+        "sql": "SELECT COUNT(DISTINCT waiter) FROM sales;"
+      },
+      {
+        "id": "Q2b",
+        "difficulty": "simple",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.0,
+        "sql": "SELECT COUNT(DISTINCT waiter) FROM sales;"
+      },
+      {
+        "id": "Q3",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.13,
+        "sql": "SELECT COUNT(DISTINCT product_name) FROM sales;"
+      },
+      {
+        "id": "Q4",
+        "difficulty": "simple",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 1.53,
+        "sql": "SELECT COUNT(DISTINCT ticket_number) FROM sales;"
+      },
+      {
+        "id": "Q5",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 13.56,
+        "sql": "SELECT product_name, SUM(quantity) FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY SUM(quantity) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q5b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 19.38,
+        "sql": "SELECT product_name, SUM(quantity) FROM sales WHERE week_day = 'Friday' GROUP BY product_name ORDER BY SUM(quantity) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q6",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 8.85,
+        "sql": "SELECT waiter, SUM(total) FROM sales GROUP BY waiter ORDER BY SUM(total) DESC LIMIT 3;"
+      },
+      {
+        "id": "Q6b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 16.77,
+        "sql": "SELECT waiter, SUM(total) AS revenue FROM sales GROUP BY waiter ORDER BY revenue DESC LIMIT 3;"
+      },
+      {
+        "id": "Q7",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 12.0,
+        "sql": "SELECT week_day, AVG(total) FROM sales GROUP BY week_day;"
+      },
+      {
+        "id": "Q7b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 15.3,
+        "sql": "SELECT week_day, AVG(total) FROM sales GROUP BY week_day;"
+      },
+      {
+        "id": "Q8",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 12.57,
+        "sql": "SELECT product_name, SUM(quantity) AS total_quantity FROM sales GROUP BY product_name ORDER BY total_quantity DESC LIMIT 1;"
+      },
+      {
+        "id": "Q9",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 11.62,
+        "sql": "SELECT hour, SUM(quantity) FROM sales GROUP BY hour ORDER BY SUM(quantity) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q10",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 11.26,
+        "sql": "SELECT week_day FROM sales GROUP BY week_day ORDER BY SUM(total) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q11",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 16.55,
+        "sql": "SELECT product_name, SUM(total) AS total_revenue FROM sales GROUP BY product_name ORDER BY total_revenue DESC LIMIT 5;"
+      },
+      {
+        "id": "Q11b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 10.87,
+        "sql": "SELECT product_name, SUM(total) AS total_revenue FROM sales GROUP BY product_name ORDER BY total_revenue DESC LIMIT 5;"
+      },
+      {
+        "id": "Q12",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 4.09,
+        "sql": "SELECT SUM(total) FROM sales;"
+      },
+      {
+        "id": "Q13",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 21.77,
+        "sql": "SELECT waiter FROM sales GROUP BY waiter ORDER BY COUNT(DISTINCT ticket_number) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q14",
+        "difficulty": "medium",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 17.33,
+        "sql": "SELECT product_name, SUM(quantity) AS total_quantity FROM sales WHERE week_day IN ('Saturday', 'Sunday') GROUP BY product_name ORDER BY total_quantity DESC LIMIT 3;"
+      },
+      {
+        "id": "Q14b",
+        "difficulty": "medium",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 18.49,
+        "sql": "SELECT product_name, SUM(quantity) FROM sales WHERE week_day IN ('Saturday', 'Sunday') GROUP BY product_name ORDER BY SUM(quantity) DESC LIMIT 3;"
+      },
+      {
+        "id": "Q15",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 39.25,
+        "sql": "SELECT T1.product_name FROM (SELECT product_name, SUM(quantity) AS product_total FROM sales GROUP BY product_name) AS T1 WHERE T1.product_total > (SELECT AVG(product_total) FROM (SELECT SUM(quantity) AS product_total FROM sales GROUP BY product_name));"
+      },
+      {
+        "id": "Q16",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 8.22,
+        "sql": "SELECT waiter, COUNT(DISTINCT product_name) FROM sales GROUP BY waiter;"
+      },
+      {
+        "id": "Q17",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 16.7,
+        "sql": "SELECT waiter, AVG(total) FROM sales GROUP BY waiter ORDER BY AVG(total) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q17b",
+        "difficulty": "hard",
+        "language": "en",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 12.3,
+        "sql": "SELECT waiter, AVG(total) FROM sales GROUP BY waiter ORDER BY AVG(total) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q18",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 39.22,
+        "sql": "SELECT strftime('%m', date) FROM sales GROUP BY 1 ORDER BY SUM(total) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q18b",
+        "difficulty": "hard",
+        "language": "en",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 23.17,
+        "sql": "SELECT strftime('%m', date), SUM(total) FROM sales GROUP BY strftime('%m', date) ORDER BY SUM(total) DESC LIMIT 1;"
+      },
+      {
+        "id": "Q19",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": false,
+        "retries": 0,
+        "latency_s": 23.29,
+        "sql": "SELECT waiter, SUM(total) FROM sales WHERE date BETWEEN '10/1/2024' AND '10/31/2024' GROUP BY waiter;"
+      },
+      {
+        "id": "Q20",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 21.77,
+        "sql": "SELECT MAX(T1.waiter_total) - MIN(T1.waiter_total) FROM (SELECT waiter, SUM(total) AS waiter_total FROM sales GROUP BY waiter) AS T1;"
+      },
+      {
+        "id": "Q20b",
+        "difficulty": "hard",
+        "language": "en",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 33.88,
+        "sql": "SELECT MAX(T1.waiter_revenue) - MIN(T1.waiter_revenue) FROM (SELECT SUM(total) AS waiter_revenue FROM sales GROUP BY waiter) AS T1;"
+      },
+      {
+        "id": "Q21",
+        "difficulty": "hard",
+        "language": "es",
+        "sql_valid": true,
+        "correct": true,
+        "retries": 0,
+        "latency_s": 9.09,
+        "sql": "SELECT waiter, AVG(unitary_price) FROM sales GROUP BY waiter ORDER BY AVG(unitary_price) DESC;"
+      }
+    ]
   }
 ]

@@ -17,6 +17,8 @@ from pathlib import Path
 
 import requests
 
+MAX_GENERATION_SECS = 150  # wall-clock cap per generation call
+
 OLLAMA_URL = "http://localhost:11434"
 DB_PATH = str(Path(__file__).parent.parent / "data" / "sales.db")
 
@@ -283,32 +285,61 @@ def results_match(ref_rows: list, llm_rows: list, order_rows: bool = True) -> bo
 
 def ollama_generate(model: str, prompt: str, num_ctx: int = 4096, think: bool | None = None) -> tuple[str, float]:
     t0 = time.time()
+    deadline = t0 + MAX_GENERATION_SECS
     options: dict = {"num_ctx": num_ctx}
     if think is not None:
         options["think"] = think
     r = requests.post(
         f"{OLLAMA_URL}/api/generate",
-        json={"model": model, "prompt": prompt, "system": SYSTEM_PROMPT, "stream": False,
+        json={"model": model, "prompt": prompt, "system": SYSTEM_PROMPT, "stream": True,
               "options": options},
-        timeout=180,
+        timeout=MAX_GENERATION_SECS,
+        stream=True,
     )
-    elapsed = time.time() - t0
     r.raise_for_status()
-    return r.json().get("response", "").strip(), elapsed
+    tokens: list[str] = []
+    for line in r.iter_lines():
+        if time.time() > deadline:
+            r.close()
+            raise TimeoutError(f"generation exceeded {MAX_GENERATION_SECS}s")
+        if not line:
+            continue
+        chunk = json.loads(line)
+        if not chunk.get("thinking"):
+            tokens.append(chunk.get("response", ""))
+        if chunk.get("done"):
+            break
+    elapsed = time.time() - t0
+    return "".join(tokens).strip(), elapsed
 
 
 def check_ollama(model: str) -> bool:
     """Verify the model can be loaded (no OOM)."""
     try:
+        options: dict = {"num_ctx": 4096}
+        if model.startswith("qwen3"):
+            options["think"] = False
+        deadline = time.time() + 210
         r = requests.post(
             f"{OLLAMA_URL}/api/generate",
-            json={"model": model, "prompt": "SELECT 1;", "stream": False,
-                  "options": {"num_ctx": 4096}},
-            timeout=60,
+            json={"model": model, "prompt": "SELECT 1;", "stream": True,
+                  "options": options},
+            timeout=210,
+            stream=True,
         )
-        data = r.json()
-        if "error" in data:
+        if r.status_code != 200:
             return False
+        for line in r.iter_lines():
+            if time.time() > deadline:
+                r.close()
+                return False
+            if not line:
+                continue
+            chunk = json.loads(line)
+            if "error" in chunk:
+                return False
+            if chunk.get("done"):
+                return True
         return True
     except Exception:
         return False
@@ -449,6 +480,9 @@ MODELS = [
     "qwen2.5:1.5b",
     "llama3.2:1b",
     "deepseek-coder:1.3b",
+    "qwen2.5-coder:7b",
+    "qwen3.5:4b",
+    "gemma4:e2b",
 ]
 
 if __name__ == "__main__":
@@ -460,8 +494,17 @@ if __name__ == "__main__":
         all_results.append(result)
 
     out_path = Path(__file__).parent / "results.json"
+    existing: dict[str, dict] = {}
+    if out_path.exists():
+        try:
+            for r in json.loads(out_path.read_text()):
+                existing[r["model"]] = r
+        except Exception:
+            pass
+    for r in all_results:
+        existing[r["model"]] = r
     with open(out_path, "w") as f:
-        json.dump(all_results, f, indent=2, ensure_ascii=False)
+        json.dump(list(existing.values()), f, indent=2, ensure_ascii=False)
 
     print(f"\n✅ Resultados guardados en {out_path}")
 

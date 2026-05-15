@@ -1,8 +1,8 @@
 ## 1. Resumen ejecutivo
 
-Para el componente text-to-SQL del sistema, se evaluaron **10 modelos de lenguaje de código abierto** ejecutables localmente a través de [Ollama](https://ollama.com). La evaluación fue diseñada para un hardware de referencia representativo: una **MacBook Air con 8 GB de RAM** y Docker Desktop configurado con la asignación estándar de ~4 GB de memoria.
+Para el componente text-to-SQL del sistema, se evaluaron **12 modelos de lenguaje de código abierto** ejecutables localmente a través de [Ollama](https://ollama.com). La evaluación cubre tres niveles de hardware: **estándar (Docker 4 GB)**, **ampliado (Docker 5 GB)** y **avanzado (Docker 8 GB+)**.
 
-El modelo seleccionado es **`qwen2.5-coder:1.5b`**, que lidera la batería de pruebas ampliada (100% SQL válido, 64.5% de respuestas correctas, ~1.5 s de latencia) con un tamaño de ~986 MB, compatible con cualquier máquina moderna. La evaluación inicial con 5 preguntas simples mostraba a `qwen2.5:1.5b` con 100% de precisión, pero al ampliar la suite a 31 preguntas que incluyen subconsultas, fechas no estándar y agregaciones anidadas, ese modelo cayó al 55% (por debajo del umbral mínimo del 60%), revelando que `qwen2.5-coder:1.5b` es más robusto.
+El modelo seleccionado **por defecto** es **`qwen2.5-coder:1.5b`** (100% SQL válido, 64.5% correctness, ~1.5 s de latencia, ~986 MB), compatible con cualquier máquina moderna con Docker 4 GB. Para hardware avanzado (Docker 8 GB+), el mejor modelo es **`qwen2.5-coder:7b`** con 80.6% de correctness y 10.5 s de latencia. La evaluación inicial con 5 preguntas simples mostraba a `qwen2.5:1.5b` con 100% de precisión, pero al ampliar la suite a 31 preguntas que incluyen subconsultas, fechas no estándar y agregaciones anidadas, ese modelo cayó al 55% (por debajo del umbral mínimo del 60%), revelando que `qwen2.5-coder:1.5b` es más robusto.
 
 ---
 
@@ -170,17 +170,21 @@ Todos ejecutados vía Ollama con cuantización Q4_K_M sobre CPU.
 | `gemma3:4b` | Google | 4 B | 3.3 GB | ~4.0 GB | General (requiere num_ctx cap) |
 | `qwen3.5:2b` | Alibaba | 2 B | 2.7 GB | ~4.0 GB | General (requiere num_ctx cap) |
 
-### 5c. Modelos con restricción de memoria o incompatibilidad
+### 5c. Modelos descartados — no evaluables
 
-| Modelo | Organización | Parámetros | Tamaño archivo | OOM en | Requiere | Notas |
-|---|---|---|---|---|---|---|
-| `qwen3.5:4b` | Alibaba | 4 B | 3.4 GB | Docker 5 GB | ≥ 7 GB | — |
-| `qwen2.5-coder:7b` | Alibaba | 7.6 B | 4.7 GB | Docker 5 GB | ≥ 7 GB | — |
-| `sqlcoder:7b` | Defog AI | 7 B | 4.1 GB | — | ≥ 6 GB | Prompt incompatible‡ |
-
-> † `qwen3.5:4b` (3.4 GB en disco) produce OOM a 5 GB Docker. `qwen3.5:2b` y `gemma3:4b` requieren capear el contexto a `num_ctx=4096` para caber en 5 GB; sin ese cap, Ollama pre-asigna KV cache para ventanas de 32K–128K tokens que superan el límite.
+| Modelo | Organización | Parámetros | Tamaño archivo | Problema | Notas |
+|---|---|---|---|---|---|
+| `qwen3.5:4b` | Alibaba | 4 B | 3.4 GB | Latencia extrema | >150 s/consulta incluso con think=false; cuelgues indefinidos en queries hard |
+| `sqlcoder:7b` | Defog AI | 7 B | 4.1 GB | Prompt incompatible‡ | Requiere ≥ 6 GB RAM |
 
 > ‡ `sqlcoder:7b` está disponible en Ollama pero requiere un template de prompt específico (`### Task / ### Database Schema / ### Answer`) distinto al formato instruct estándar que usa este sistema. Con el prompt actual genera texto explicativo en vez de SQL. Sería necesario un path de prompt dedicado en el benchmark para evaluarlo correctamente.
+
+### 5d. Modelos evaluados — tier 8 GB Docker
+
+| Modelo | Organización | Parámetros | Tamaño archivo | RAM estimada | Enfoque |
+|---|---|---|---|---|---|
+| `qwen2.5-coder:7b` | Alibaba | 7.6 B | 4.7 GB | ~5.5 GB | Código/SQL (fine-tuned) |
+| `gemma4:e2b` | Google | ~4 B (cuantizado) | 3.7 GB | ~7.2 GB | General |
 
 ---
 
@@ -192,18 +196,19 @@ Suite ampliada de **31 preguntas** (21 ES + 10 EN) en 3 niveles de dificultad. M
 
 | Modelo | SQL% | OK% | ES% | EN% | Lat avg | Reintentos | RAM | Veredicto |
 |---|---|---|---|---|---|---|---|---|
-| **`qwen2.5-coder:1.5b`** | **100%** | **64.5%** | **66.7%** | **60.0%** | **1.5 s** | **0.10** | ✅ ~1.2 GB | ⭐ Elegido |
+| **`qwen2.5-coder:7b`**¶ | 96.8% | **80.6%** | **85.7%** | 70.0% | 10.5 s | 0.16 | ❌ ~5.5 GB | ⭐ Elegido (Docker 8 GB) |
+| `gemma3:4b`† | 100% | **74.2%** | **71.4%** | **80.0%** | 3.1 s | 0.00 | ⚠️ ~4.0 GB | ⭐ Elegido (Docker 5 GB) |
+| `gemma4:e2b`¶ | 100% | 71.0% | 66.7% | **80.0%** | 15.1 s | 0.00 | ❌ ~7.2 GB | 8 GB, bueno en inglés |
+| `qwen3.5:2b`† | 96.8% | 67.7% | 66.7% | 70.0% | 28.4 s | 0.13 | ⚠️ ~4.0 GB | Latencia inaceptable (think=false) |
+| **`qwen2.5-coder:1.5b`** | **100%** | 64.5% | 66.7% | 60.0% | **1.5 s** | **0.10** | ✅ ~1.2 GB | ⭐ Elegido (Docker 4 GB) |
 | `llama3.2:3b` | 100% | 64.5% | 61.9% | 70.0% | 2.4 s | 0.16 | ✅ ~2.0 GB | Bueno (más RAM) |
 | `qwen2.5:1.5b` | 100% | 54.8% | 61.9% | 40.0% | 1.6 s | 0.00 | ✅ ~1.2 GB | Por debajo del umbral |
 | `llama3.2:1b` | 96.8% | 41.9% | 33.3% | 60.0% | 1.6 s | 0.29 | ✅ ~1.5 GB | Insuficiente |
 | `gemma2:2b` | 93.5% | 38.7% | 33.3% | 50.0% | 2.8 s | 0.23 | ✅ ~2.5 GB | Insuficiente |
 | `qwen2.5-coder:0.5b` | 93.5% | 32.3% | 23.8% | 50.0% | 0.7 s | 0.19 | ✅ ~0.5 GB | Ultra-rápido/limitado |
-| `gemma3:4b`† | 100% | **74.2%** | **71.4%** | **80.0%** | 3.1 s | 0.00 | ⚠️ ~4.0 GB | Mejor modelo (Docker 5 GB) |
-| `qwen3.5:2b`† | 96.8% | 67.7% | 66.7% | 70.0% | 28.4 s | 0.13 | ⚠️ ~4.0 GB | Latencia inaceptable (think=false) |
 | `gemma3:1b` | 61.3% | 32.3% | 28.6% | 40.0% | 1.3 s | 1.32 | ✅ ~1.0 GB | Por debajo de umbral |
 | `deepseek-coder:1.3b` | 0% | 0% | 0% | 0% | — | — | ✅ ~1.0 GB | Error 500‡ |
-| `qwen2.5-coder:7b` | OOM | — | — | — | — | — | ❌ >5 GB | OOM a 5 GB |
-| `qwen3.5:4b` | OOM | — | — | — | — | — | ❌ >5 GB | OOM a 5 GB |
+| `qwen3.5:4b` | N/A | — | — | — | — | — | ❌ >5 GB | Latencia extrema (>150 s/q)∥ |
 | `sqlcoder:7b` | N/A | — | — | — | — | — | ❌ ~5 GB | Prompt incompatible§ |
 
 > † `gemma3:4b` y `qwen3.5:2b` requieren `num_ctx=4096` para caber en Docker 5 GB. Sin ese cap, Ollama pre-asigna KV cache para contextos de 32K–128K tokens que superan el límite. Con el cap, la calidad no se ve afectada: nuestros prompts son ~350 tokens en el peor caso.
@@ -211,6 +216,10 @@ Suite ampliada de **31 preguntas** (21 ES + 10 EN) en 3 niveles de dificultad. M
 > ‡ `deepseek-coder:1.3b` pasa el chequeo de disponibilidad pero retorna HTTP 500 en generación real — posible presión de memoria que no se manifiesta hasta la inferencia efectiva.
 
 > § `sqlcoder:7b` usa un template `### Task / ### Database Schema / ### Answer` incompatible con el prompt instruct estándar del sistema. Evaluado manualmente: genera texto explicativo en vez de SQL con el prompt actual.
+
+> ¶ `qwen2.5-coder:7b` y `gemma4:e2b` requieren Docker 8 GB (≥7 GB RAM disponible para Ollama). No aptos para el hardware de referencia estándar (Docker 4 GB).
+
+> ∥ `qwen3.5:4b` produce cuelgues indefinidos en consultas complejas incluso con `think=false`. Descartado por latencia e inestabilidad.
 
 ---
 
@@ -251,6 +260,14 @@ Evaluado en dos modos: con thinking (por defecto) y con `think=false` vía Ollam
 
 Deshabilitar el pensamiento mejora ligeramente la correctness (+3.2 pp) y la latencia (−3.6 s), pero **28.4 s sigue siendo inaceptable** para una interfaz interactiva. La lentitud no proviene del razonamiento interno sino de la inferencia CPU del modelo en sí — la arquitectura Qwen3.5 es más lenta que Gemma3 a tamaño equivalente en este hardware.
 
+#### `qwen2.5-coder:7b` — Mejor modelo general (Docker 8 GB)
+
+Con 7.6 B parámetros y fine-tuning orientado a código, `qwen2.5-coder:7b` alcanza **80.6% de correctness** — el mejor resultado de toda la evaluación. Destaca especialmente en español (85.7%), siendo el único modelo que supera el 80% de correctness global. Logró 100% en preguntas simples y medias; las fallas se concentran en consultas con fechas de formato no estándar (Q18, Q18b) y subconsultas de dos niveles (Q15). Latencia promedio de 10.5 s, con picos de 30–45 s en consultas complejas. Requiere Docker 8 GB (~5.5 GB RAM). Es la recomendación para usuarios con hardware ampliado.
+
+#### `gemma4:e2b` — Segunda opción (Docker 8 GB)
+
+`gemma4:e2b` alcanza **71.0% de correctness** con 100% de SQL válido y cero reintentos — robusto en generación de SQL sintácticamente correcto. Destaca en inglés (80%) e impresiona en consultas medias (80%), pero falla en consultas difíciles que involucran fechas con formato no estándar (Q18, Q19) y promedios por mozo (Q17). Su latencia promedio de 15.1 s es la más alta de todos los modelos evaluados, siendo su principal desventaja frente a `qwen2.5-coder:7b`.
+
 #### `gemma3:1b` — Descartado
 
 61% de SQL válido (por debajo del umbral del 80%) y 32% de correctness, con 1.32 reintentos en promedio. La alta tasa de reintentos indica que el modelo genera frecuentemente SQL con errores de sintaxis o estructura. Siendo el único modelo Gemma3 ejecutable en el hardware de referencia, no aporta ninguna ventaja sobre modelos equivalentes de la familia Qwen2.5.
@@ -265,17 +282,19 @@ Deshabilitar el pensamiento mejora ligeramente la correctness (+3.2 pp) y la lat
 
 | Modelo | Simple (6q) | Media (15q) | Difícil (10q) |
 |---|---|---|---|
+| `qwen2.5-coder:7b`¶ | **100%** | **100%** | **50.0%** |
+| `gemma3:4b`† | **100%** | **86.7%** | 30.0% |
+| `gemma4:e2b`¶ | 100% | 80.0% | 40.0% |
 | `qwen2.5-coder:1.5b` | 100% | 86.7% | 20.0% |
 | `llama3.2:3b` | 100% | 80.0% | 20.0% |
+| `qwen3.5:2b`† | 100% | 73.3% | 20.0% |
 | `qwen2.5:1.5b` | 83.3% | 73.3% | 10.0% |
 | `llama3.2:1b` | 83.3% | 46.7% | 10.0% |
 | `gemma2:2b` | 66.7% | 53.3% | 0.0% |
 | `qwen2.5-coder:0.5b` | 83.3% | 33.3% | 0.0% |
 | `gemma3:1b` | 66.7% | 26.7% | 0.0% |
-| `gemma3:4b`† | **100%** | **86.7%** | **30.0%** |
-| `qwen3.5:2b`† | 100% | 73.3% | 20.0% |
 
-Las preguntas difíciles (subconsultas, fechas no estándar, agregaciones de dos niveles) exponen una brecha clara: incluso los mejores modelos logran solo 20-30% en ese nivel. Esto es esperado para modelos de 1-3B parámetros sin fine-tuning SQL específico.
+Las preguntas difíciles (subconsultas, fechas no estándar, agregaciones de dos niveles) exponen una brecha clara. `qwen2.5-coder:7b` es el único modelo que supera el 40% en ese nivel (50%), gracias a su fine-tuning específico en código. Los modelos de 1–4B parámetros se quedan en el 20–40%.
 
 ![Difficulty breakdown](eval/charts/difficulty_breakdown.png)
 
@@ -291,11 +310,11 @@ Las preguntas difíciles (subconsultas, fechas no estándar, agregaciones de dos
 
 ### Velocidad vs. precisión (suite ampliada, 31 preguntas)
 
-El siguiente gráfico resume el trade-off central: eje X = latencia promedio (escala logarítmica), eje Y = correctness. Verde = hardware estándar (Docker ≤ 4 GB); naranja = hardware ampliado (5 GB). El tamaño de cada burbuja es proporcional a la tasa de SQL válido.
+El siguiente gráfico resume el trade-off central: eje X = latencia promedio (escala logarítmica), eje Y = correctness. Verde = hardware estándar (Docker ≤ 4 GB); naranja = hardware ampliado (5 GB); morado = avanzado (8 GB). El tamaño de cada burbuja es proporcional a la tasa de SQL válido.
 
 ![Correctness vs Latency](eval/charts/correctness_vs_latency.png)
 
-La zona ideal (arriba a la izquierda) concentra a `qwen2.5-coder:1.5b` y `qwen2.5:1.5b` — alta precisión con latencia sub-2 s. `gemma3:4b` supera en correctness pero exige 5 GB Docker. `qwen3.5:2b` alcanza buena precisión pero su latencia de 28 s lo descarta para uso interactivo.
+`qwen2.5-coder:7b` lidera en la esquina superior con 80.6% de correctness a 10.5 s. `gemma3:4b` ocupa la zona ideal de balance (74.2%, 3.1 s) pero exige 5 GB Docker. `qwen2.5-coder:1.5b` domina en la franja sub-2 s para hardware estándar. `qwen3.5:2b` y `gemma4:e2b` quedan desplazados a la derecha por latencia elevada.
 
 La correlación entre tamaño y precisión se confirma en la suite ampliada, pero con matices: `qwen2.5:1.5b` (instruct general) es superado por `qwen2.5-coder:1.5b` (orientado a código) en consultas complejas — el fine-tuning SQL hace diferencia a partir de Q15 en adelante.
 
@@ -304,51 +323,56 @@ La correlación entre tamaño y precisión se confirma en la suite ampliada, per
 | Escenario | Modelo recomendado | Correctness | RAM |
 |---|---|---|---|
 | Mínimo (Docker < 2 GB) | `qwen2.5-coder:0.5b` | 32% | ~0.5 GB |
-| Hardware referencia (Docker 4 GB) | **`qwen2.5-coder:1.5b`** | **64.5%** | ~1.2 GB |
-| Máquina ampliada (Docker 5 GB) | **`gemma3:4b`** | **74.2%** (EN 80%) | ~4.0 GB |
+| Estándar (Docker 4 GB) | **`qwen2.5-coder:1.5b`** | **64.5%** | ~1.2 GB |
+| Ampliado (Docker 5 GB) | **`gemma3:4b`** | **74.2%** (EN 80%) | ~4.0 GB |
+| Avanzado (Docker 8 GB) | **`qwen2.5-coder:7b`** | **80.6%** (ES 85.7%) | ~5.5 GB |
 
 ### ¿Por qué no un modelo más grande?
 
-`qwen2.5-coder:7b` requiere >5 GB RAM — OOM incluso con Docker a 5 GB. `sqlcoder:7b` (el único 7B especializado en SQL disponible en Ollama) tiene un formato de prompt incompatible con el sistema actual. En el hardware de referencia, los modelos 7B en CPU tardarían 30–60 s por consulta — inaceptable para una interfaz interactiva.
+`sqlcoder:7b` (el único 7B especializado en SQL disponible en Ollama) tiene un formato de prompt incompatible con el sistema actual. Modelos de 13B+ parámetros en CPU requieren >60 s por consulta — inaceptable para una interfaz interactiva.
 
-El sweet spot para este proyecto está en los modelos de 1.5–3B parámetros con fine-tuning orientado a código: suficiente capacidad semántica para SQL estructurado con prompts few-shot, con latencia sub-3 s en CPU.
+`qwen2.5-coder:7b` es el límite práctico para inferencia CPU: 10.5 s de latencia promedio con 80.6% de correctness. Para el hardware de referencia (Docker 4 GB), el sweet spot sigue siendo `qwen2.5-coder:1.5b`; el tier 8 GB es una opción para máquinas con más recursos.
 
 ---
 
-## 8. Modelo seleccionado: `qwen2.5-coder:1.5b`
+## 8. Modelos seleccionados
 
-### Justificación
+### SQL model: `gemma3:4b` (Docker 5 GB)
 
 | Criterio | Valor | Cumple umbral |
 |---|---|---|
 | Tasa SQL válido | 100% | ✅ (≥ 80%) |
-| Tasa respuesta correcta | 64.5% | ✅ (≥ 60%) |
-| Latencia promedio | 1.5 s | ✅ (≤ 15 s) |
-| Reintentos promedio | 0.10 | ✅ (≤ 0.5) |
-| RAM requerida | ~1.2 GB | ✅ Universal |
+| Tasa respuesta correcta | 74.2% | ✅ (≥ 60%) |
+| Latencia promedio | 3.1 s | ✅ (≤ 15 s) |
+| Reintentos promedio | 0.00 | ✅ (≤ 0.5) |
+| RAM requerida | ~4.0 GB | ✅ Docker 5 GB |
 
-`qwen2.5-coder:1.5b` supera todos los umbrales, corre en cualquier máquina con Docker instalado y es el modelo con mejor correctness dentro del límite de memoria del hardware de referencia (Docker 4 GB).
+`gemma3:4b` es el mejor modelo por correctness que corre dentro de un límite de memoria razonable (5 GB Docker). Requiere `num_ctx=4096` para caber en ese límite (ya configurado en el código).
 
-### Por qué no `qwen2.5:1.5b` (modelo anterior)
+### NL model: `qwen2.5-coder:1.5b`
+
+El modelo de respuesta en lenguaje natural se mantiene en `qwen2.5-coder:1.5b`: es rápido (1.5 s), ya está descargado como fallback del SQL model, y la tarea de parafrasear un resultado tabulado es menos exigente que generar SQL correcto. Usar el mismo modelo 4B para ambas tareas consumiría ~8 GB RAM adicionales sin ganancia apreciable en la calidad de la respuesta en prosa.
+
+### Por qué no `qwen2.5-coder:7b` como SQL model
+
+`qwen2.5-coder:7b` alcanza 80.6% de correctness (+6.4 pp sobre `gemma3:4b`) pero su latencia de **10.5 s promedio** es 3.4× mayor que `gemma3:4b` (3.1 s). Además requiere Docker 8 GB (~5.5 GB RAM), lo que eleva el requisito de hardware sin que la ganancia de precisión lo justifique para el caso de uso interactivo. La mejora de 6 pp no compensa triplicar la latencia y doblar el requerimiento de memoria.
+
+### Por qué no `qwen2.5-coder:1.5b` como SQL model (modelo anterior)
+
+En la evaluación inicial (5 preguntas simples/medias), `qwen2.5-coder:1.5b` obtuvo 100% y era el mejor dentro de 4 GB Docker. Con la suite ampliada a 31 preguntas, `gemma3:4b` lo supera en 9.7 pp (74.2% vs 64.5%) con latencia comparable (3.1 s vs 1.5 s) y cero reintentos. El trade-off de requerir 5 GB Docker a cambio de casi 10 pp de correctness es favorable.
+
+### Por qué no `qwen2.5:1.5b` (modelo original)
 
 En la evaluación inicial (5 preguntas simples/medias), `qwen2.5:1.5b` obtuvo 100% de precisión y fue seleccionado. Al ampliar la suite a 31 preguntas con dificultad real, cayó al **54.8%** — por debajo del umbral mínimo del 60%. Falla especialmente en inglés (40%) y en consultas con subconsultas o agrupaciones complejas. La hipótesis anterior ("el fine-tuning de código reduce la flexibilidad") se invierte con consultas más exigentes: el fine-tuning orientado a código es una ventaja, no una limitación.
 
-### Por qué no `llama3.2:3b`
-
-Empata en correctness global (64.5%) y supera ligeramente en inglés (70% vs 60%). Sin embargo, requiere ~2 GB RAM — 70% más que `qwen2.5-coder:1.5b` — sin ninguna ganancia en el hardware de referencia. Es la alternativa recomendada para máquinas con Docker ≥ 5 GB y uso predominante en inglés.
-
 ### Estrategias de mitigación para las limitaciones del modelo
 
-Aunque el modelo es pequeño, se implementan las siguientes estrategias para maximizar su fiabilidad:
+Se implementan las siguientes estrategias para maximizar la fiabilidad:
 
 1. **Inyección de esquema completo** en cada prompt de sistema — el modelo no necesita "recordar" la estructura de la tabla.
 2. **Few-shot examples** con 3 ejemplos de pares pregunta→SQL en el prompt, anclan el formato de salida.
 3. **Bucle de corrección con retroalimentación** — si el SQL falla, el error de SQLite se incluye en el prompt del siguiente intento (hasta 3 reintentos).
 4. **Limpieza de output** — el código elimina markdown fences, texto explicativo y puntuación residual antes de ejecutar el SQL.
-
-### Modelo para respuesta en lenguaje natural (bonus)
-
-El mismo modelo `qwen2.5:1.5b` se usa para el componente de respuesta en lenguaje natural. Esto minimiza el uso de memoria (el modelo ya está cargado en Ollama) y reduce el tiempo total de descarga a ~986 MB. Los modelos Qwen2.5-Instruct manejan ambas tareas correctamente.
 
 ---
 
@@ -362,7 +386,6 @@ Estos modelos son de código abierto y ejecutables localmente vía Ollama, pero 
 
 | Modelo | Parámetros | RAM estimada | Motivo de exclusión |
 |---|---|---|---|
-| `qwen2.5-coder:7b` | 7.6 B | ~5.0 GB | Requiere ≥16 GB RAM / 6 GB Docker. OOM en referencia. |
 | `llama3.2:3b` | 3.2 B | ~3.0 GB | Requiere ≥8 GB RAM / 4 GB Docker. OOM en entorno restringido. |
 | `gemma2:2b` (Google) | 2.6 B | ~2.5 GB | Borderline en referencia estándar. OOM en entorno restringido. |
 | `codellama:7b` (Meta) | 7 B | ~5.0 GB | Mismo problema de memoria que qwen2.5-coder:7b. |

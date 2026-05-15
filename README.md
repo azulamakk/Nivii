@@ -18,11 +18,15 @@ Then open **http://localhost** in your browser.
 
 > **First run:** The app downloads two Ollama models on startup (~3 GB total). This only happens once; subsequent runs reuse the cached `ollama_data` Docker volume. Startup can take 5–10 minutes depending on your connection.
 
-> **Memory:** The default model (`qwen2.5-coder:1.5b`) requires ~1.2 GB RAM and runs on any modern laptop. If you have Docker Desktop, make sure it has at least **4 GB of memory** allocated (Settings → Resources → Memory). For better English-language accuracy, switch to `llama3.2:3b` (requires ~2 GB RAM / Docker 5 GB):
-
-```bash
-SQL_MODEL=llama3.2:3b NL_MODEL=llama3.2:3b docker compose up --build
-```
+> **Memory:** The default SQL model (`gemma3:4b`) requires ~4 GB RAM. Make sure Docker Desktop has at least **5 GB of memory** allocated (Settings → Resources → Memory → 5120 MB). To downgrade or upgrade:
+>
+> ```bash
+> # 4 GB Docker — downgrade to lighter model
+> SQL_MODEL=qwen2.5-coder:1.5b NL_MODEL=qwen2.5-coder:1.5b docker compose up --build
+>
+> # 8 GB Docker — upgrade for higher accuracy (high latency, see decisions.md §8)
+> SQL_MODEL=qwen2.5-coder:7b docker compose up --build
+> ```
 
 ---
 
@@ -56,7 +60,7 @@ SQL_MODEL=llama3.2:3b NL_MODEL=llama3.2:3b docker compose up --build
 **Request flow:**
 
 1. User submits a question via the web UI.
-2. `app` sends the question + table schema to Ollama (`qwen2.5:1.5b`) → receives SQL.
+2. `app` sends the question + table schema to Ollama (`qwen2.5-coder:1.5b` by default) → receives SQL.
 3. SQL is validated and executed against embedded SQLite.
 4. If execution fails, the error is fed back to the model for up to 3 retry attempts.
 5. The SQL result is sent back to Ollama → receives a natural-language answer.
@@ -69,26 +73,27 @@ SQL_MODEL=llama3.2:3b NL_MODEL=llama3.2:3b docker compose up --build
 
 ## Model Evaluation
 
-Eight open-source models were benchmarked against a 5-query test suite using three core KPIs: SQL validity rate, answer correctness, and average latency. The evaluation targets a MacBook Air with 8 GB RAM — no GPU required.
-
-Evaluated on a 31-question bilingual suite (21 ES + 10 EN) across three difficulty tiers (simple, medium, hard).
+Twelve open-source models were benchmarked on a 31-question bilingual suite (21 ES + 10 EN) across three difficulty tiers. The evaluation targets a MacBook Air with 8 GB RAM — no GPU required.
 
 | Model | SQL valid | Correct | ES% | EN% | Latency | Docker RAM |
 |---|---|---|---|---|---|---|
-| **`qwen2.5-coder:1.5b`** ← default | **100%** | **64.5%** | 67% | 60% | 1.5 s | 4 GB |
-| `gemma3:4b` ← if Docker ≥ 5 GB | **100%** | **74.2%** | **71%** | **80%** | 3.1 s | 5 GB† |
-| `llama3.2:3b` | 100% | 64.5% | 62% | 70% | 2.4 s | 5 GB |
+| **`qwen2.5-coder:7b`** ← if Docker ≥ 8 GB | 97% | **80.6%** | **86%** | 70% | 10.5 s | 8 GB |
+| **`gemma3:4b`** ← **default** | **100%** | **74.2%** | **71%** | **80%** | 3.1 s | 5 GB† |
+| `gemma4:e2b` | 100% | 71.0% | 67% | **80%** | 15.1 s | 8 GB |
+| `qwen2.5-coder:1.5b` ← if Docker < 5 GB | **100%** | 64.5% | 67% | 60% | **1.5 s** | **4 GB** |
+| `llama3.2:3b` | 100% | 64.5% | 62% | 70% | 2.4 s | 4 GB |
 | `qwen2.5:1.5b` | 100% | 54.8% | 62% | 40% | 1.6 s | 4 GB |
 | `llama3.2:1b` | 97% | 41.9% | 33% | 60% | 1.6 s | 4 GB |
 | `gemma2:2b` | 94% | 38.7% | 33% | 50% | 2.8 s | 4 GB |
 | `qwen2.5-coder:0.5b` | 94% | 32.3% | 24% | 50% | 0.7 s | 4 GB |
 
-> † `gemma3:4b` requires the benchmark's `num_ctx=4096` cap (already set in `benchmark.py`). Without it, Ollama pre-allocates KV cache for a 32K token context and OOMs at 5 GB.
+> † `gemma3:4b` requires `num_ctx=4096` (already set in `benchmark.py`). Without it, Ollama pre-allocates KV cache for a 32K context and OOMs at 5 GB.
 
 **Notable findings:**
-- `gemma3:4b` is the top performer at 74.2% overall and 80% EN, with 3.1 s latency — but needs Docker 5 GB. Best choice if you have the memory.
-- `qwen2.5-coder:1.5b` remains the default for the standard 4 GB reference hardware.
-- Hard questions (subqueries, non-standard date parsing, two-level aggregations) expose the ceiling of small models — even the best model scores only 30% on the hard tier.
+- `qwen2.5-coder:7b` is the overall winner at 80.6%, especially strong in Spanish (86%) — needs Docker 8 GB (~5.5 GB RAM).
+- `gemma3:4b` is the best at 5 GB Docker: 74.2% correct, 80% EN, 3.1 s latency.
+- `qwen2.5-coder:1.5b` remains the default for standard 4 GB hardware: 64.5% at 1.5 s.
+- Hard questions (subqueries, non-standard date parsing, two-level aggregations) expose the ceiling of small models — only `qwen2.5-coder:7b` clears 40% on the hard tier (50%).
 
 For the full methodology, KPI definitions, per-query results, trade-off analysis, and the list of models considered but not evaluated (API-only, HuggingFace-only, and hardware-constrained), see **[decisions.md](decisions.md)** — written in Spanish as required.
 
@@ -103,12 +108,12 @@ python3 eval/benchmark.py qwen2.5:1.5b   # single model
 
 ## Model Configuration
 
-| Role | Default (4 GB Docker) | Best (5 GB Docker) | How to switch |
-|---|---|---|---|
-| Text-to-SQL | `qwen2.5-coder:1.5b` | `gemma3:4b` | `SQL_MODEL=gemma3:4b docker compose up` |
-| NL answer | `qwen2.5-coder:1.5b` | `gemma3:4b` | `NL_MODEL=gemma3:4b docker compose up` |
+| Role | Default (5 GB Docker) | Downgrade (4 GB) | Upgrade (8 GB) | How to switch |
+|---|---|---|---|---|
+| Text-to-SQL | **`gemma3:4b`** | `qwen2.5-coder:1.5b` | `qwen2.5-coder:7b`* | `SQL_MODEL=<model> docker compose up` |
+| NL answer | `qwen2.5-coder:1.5b` | `qwen2.5-coder:1.5b` | `qwen2.5-coder:1.5b` | `NL_MODEL=<model> docker compose up` |
 
-Both roles share the same model by default, keeping memory usage at ~1.2 GB total.
+\* `qwen2.5-coder:7b` adds only +6 pp correctness over `gemma3:4b` at 3.4× the latency (10.5 s vs 3.1 s) — not recommended for interactive use.
 
 **Why Ollama instead of in-process HuggingFace?** Ollama handles GGUF quantization, GPU detection, and REST API serving out of the box — no CUDA drivers or `torch` inside the app image.
 
