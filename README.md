@@ -95,7 +95,7 @@ Twelve open-source models were benchmarked on a 31-question bilingual suite (21 
 - `qwen2.5-coder:1.5b` remains the default for standard 4 GB hardware: 64.5% at 1.5 s.
 - Hard questions (subqueries, non-standard date parsing, two-level aggregations) expose the ceiling of small models — only `qwen2.5-coder:7b` clears 40% on the hard tier (50%).
 
-For the full methodology, KPI definitions, per-query results, trade-off analysis, and the list of models considered but not evaluated (API-only, HuggingFace-only, and hardware-constrained), see **[decisions.md](decisions.md)** — written in Spanish as required.
+For the full methodology, KPI definitions, per-query results, trade-off analysis, and the list of models considered but not evaluated (API-only, HuggingFace-only, and hardware-constrained), see **[decisions.md](decisions.md)**.
 
 The benchmark is reproducible:
 
