@@ -19,7 +19,7 @@ OUT_DIR.mkdir(exist_ok=True)
 
 # Memory tier per model — matches decisions.md §7
 TIER_5GB = {"gemma3:4b", "qwen3.5:2b", "llama3.2:3b", "gemma2:2b"}
-TIER_8GB = {"qwen2.5-coder:7b", "qwen3.5:4b", "gemma4:e2b"}
+TIER_8GB = {"qwen2.5-coder:7b", "qwen3.5:4b", "gemma4:e2b", "codellama:7b"}
 COLOR_4GB = "#27ae60"
 COLOR_5GB = "#e67e22"
 COLOR_8GB = "#8e44ad"
@@ -83,9 +83,9 @@ def chart_correctness_vs_latency(data):
     ax.set_ylim(0, 85)
 
     legend_handles = [
-        mpatches.Patch(color=COLOR_4GB, label="≤ 4 GB Docker (standard)"),
-        mpatches.Patch(color=COLOR_5GB, label="5 GB Docker (ampliado)"),
-        mpatches.Patch(color=COLOR_8GB, label="8 GB Docker (avanzado)"),
+        mpatches.Patch(color=COLOR_4GB, label="≤ 4 GB Docker (reduced)"),
+        mpatches.Patch(color=COLOR_5GB, label="5 GB Docker (standard)"),
+        mpatches.Patch(color=COLOR_8GB, label="8 GB Docker (advanced)"),
         plt.Line2D([0], [0], color="grey", linestyle="--", label="60% threshold"),
     ]
     ax.legend(handles=legend_handles, fontsize=9, loc="upper left")

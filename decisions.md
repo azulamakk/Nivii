@@ -185,6 +185,7 @@ All run via Ollama with Q4_K_M quantization on CPU.
 |---|---|---|---|---|---|
 | `qwen2.5-coder:7b` | Alibaba | 7.6 B | 4.7 GB | ~5.5 GB | Code/SQL (fine-tuned) |
 | `gemma4:e2b` | Google | ~4 B (quantized) | 3.7 GB | ~7.2 GB | General |
+| `codellama:7b` | Meta | 7 B | 3.8 GB | ~5.0 GB | Code (general, not SQL-specialized) |
 
 ---
 
@@ -202,6 +203,7 @@ Expanded suite of **31 questions** (21 ES + 10 EN) across 3 difficulty levels. A
 | `qwen3.5:2b`† | 96.8% | 67.7% | 66.7% | 70.0% | 28.4 s | 0.13 | ~4.0 GB | Unacceptable latency (think=false) |
 | **`qwen2.5-coder:1.5b`** | **100%** | 64.5% | 66.7% | 60.0% | **1.5 s** | **0.10** | ~1.2 GB | ⭐ Selected (Docker 4 GB) |
 | `llama3.2:3b` | 100% | 64.5% | 61.9% | 70.0% | 2.4 s | 0.16 | ~2.0 GB | Good (more RAM) |
+| `codellama:7b`¶ | 96.8% | 58.1% | 61.9% | 50.0% | 8.7 s | 0.10 | ~5.0 GB | Below threshold; weak in English |
 | `qwen2.5:1.5b` | 100% | 54.8% | 61.9% | 40.0% | 1.6 s | 0.00 | ~1.2 GB | Below threshold |
 | `llama3.2:1b` | 96.8% | 41.9% | 33.3% | 60.0% | 1.6 s | 0.29 | ~1.5 GB | Insufficient |
 | `gemma2:2b` | 93.5% | 38.7% | 33.3% | 50.0% | 2.8 s | 0.23 | ~2.5 GB | Insufficient |
@@ -209,7 +211,7 @@ Expanded suite of **31 questions** (21 ES + 10 EN) across 3 difficulty levels. A
 | `gemma3:1b` | 61.3% | 32.3% | 28.6% | 40.0% | 1.3 s | 1.32 | ~1.0 GB | Below threshold |
 | `deepseek-coder:1.3b` | 0% | 0% | 0% | 0% | — | — | ~1.0 GB | HTTP 500 error‡ |
 | `qwen3.5:4b` | N/A | — | — | — | — | — | >5 GB | Extreme latency (>150 s/q)∥ |
-| `sqlcoder:7b` | N/A | — | — | — | — | — | ~5 GB | Incompatible prompt§ |
+| `sqlcoder:7b` | N/A | — | — | — | — | — | ~5 GB | Incompatible prompt § |
 
 > † `gemma3:4b` and `qwen3.5:2b` require `num_ctx=4096` to fit in Docker 5 GB. Without that cap, Ollama pre-allocates KV cache for 32K–128K token contexts that exceed the limit. With the cap, quality is unaffected: our prompts are ~350 tokens in the worst case.
 
@@ -217,7 +219,7 @@ Expanded suite of **31 questions** (21 ES + 10 EN) across 3 difficulty levels. A
 
 > § `sqlcoder:7b` uses a `### Task / ### Database Schema / ### Answer` template incompatible with the system's standard instruct prompt. Manually tested: generates explanatory text instead of SQL with the current prompt.
 
-> ¶ `qwen2.5-coder:7b` and `gemma4:e2b` require Docker 8 GB (≥7 GB RAM available for Ollama). Not suitable for 5 GB Docker hardware.
+> ¶ `qwen2.5-coder:7b`, `gemma4:e2b`, and `codellama:7b` require Docker 8 GB (≥5 GB RAM available for Ollama after other services). Not suitable for 5 GB Docker hardware.
 
 > ∥ `qwen3.5:4b` produces indefinite hangs on complex queries even with `think=false`. Discarded for latency and instability.
 
@@ -380,19 +382,17 @@ The following strategies are implemented to maximize reliability:
 
 The following models were investigated during the selection process but **could not be evaluated with complete metrics** due to hardware constraints or not being executable locally on the reference hardware.
 
-### 9a. Require hardware above reference
+### 9a. Evaluated with 8 GB Docker — below threshold
 
-These models are open-source and executable locally via Ollama, but their memory requirement excludes them from the reference hardware (MacBook Air 8 GB / Docker 5 GB).
+These models were re-evaluated after extending Docker to 8 GB. They run without OOM errors but fail the correctness or SQL validity thresholds, or are architecturally unsuitable for instruction-following prompts.
 
-| Model | Parameters | Est. RAM | Reason for exclusion |
-|---|---|---|---|
-| `llama3.2:3b` | 3.2 B | ~3.0 GB | Requires ≥8 GB RAM / 4 GB Docker. OOM in restricted environment. |
-| `gemma2:2b` (Google) | 2.6 B | ~2.5 GB | Borderline on standard reference. OOM in restricted environment. |
-| `codellama:7b` (Meta) | 7 B | ~5.0 GB | Same memory problem as qwen2.5-coder:7b. |
-| `mistral:7b` (Mistral AI) | 7 B | ~5.0 GB | General purpose; requires 16 GB RAM. |
-| `starcoder2:3b` (BigCode) | 3 B | ~2.5 GB | Code-specialized; requires ≥4 GB Docker. |
-| `phi3:mini` (Microsoft) | 3.8 B | ~2.8 GB | Requires ≥4 GB Docker for stable inference. |
-| `phi3.5:mini` (Microsoft) | 3.8 B | ~2.8 GB | Same constraint as phi3:mini. |
+| Model | Parameters | Est. RAM | SQL% | OK% | Reason for rejection |
+|---|---|---|---|---|---|
+| `codellama:7b` (Meta) | 7 B | ~5.0 GB | 96.8% | 58.1% | Below 60% correctness threshold; 22 points behind `qwen2.5-coder:7b` at the same tier. Weak in English (50%). Full results in 6a. |
+| `starcoder2:3b` (BigCode) | 3 B | ~2.5 GB | ~0% | 0% | Base code-completion model, not instruction-tuned. Does not understand the chat/system-prompt format — outputs code-completion text rather than SQL. No instruct variant available on Ollama at this size. |
+| `phi3.5` (Microsoft) | 3.8 B | ~2.8 GB | ~0% | 0% | Instruction-following model but prepends natural language prose to the SQL response despite being instructed not to (e.g. "Here is the query:"). `clean_sql` only strips markdown fences, not prose prefixes — SQLite rejects the output. SQL validity collapses to ~0%. |
+
+**`mistral:7b`** was not tested: it is general-purpose (not code/SQL-specialized) and unlikely to outperform `qwen2.5-coder:7b` at the same memory tier. **`phi3:mini`** was skipped in favour of the newer `phi3.5`.
 
 ### 9b. Available only as API (not locally executable)
 
